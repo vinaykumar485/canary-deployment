@@ -1,0 +1,59 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+
+metadata:
+  name: nginx-rollout
+  namespace: canary-deployment
+
+spec:
+  replicas: 2
+
+  selector:
+    matchLabels:
+      app: nginx-rollout
+
+  template:
+    metadata:
+      labels:
+        app: nginx-rollout
+
+    spec:
+      containers:
+      - name: nginx
+
+        image: 273263084701.dkr.ecr.us-east-1.amazonaws.com/canary-deploy:v2
+
+        imagePullPolicy: Always
+
+        env:
+        - name: APP_VERSION
+          value: "v1"
+
+        ports:
+        - containerPort: 80
+
+  strategy:
+
+    canary:
+
+      stableService: stable-service
+
+      canaryService: canary-service
+
+      trafficRouting:
+
+        nginx:
+
+          stableIngress: canary-ingress
+
+      steps:
+
+      - setWeight: 20
+
+      - pause: {}
+
+      - setWeight: 50
+
+      - pause: {}
+
+      - setWeight: 100
